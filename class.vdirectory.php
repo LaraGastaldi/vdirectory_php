@@ -1,5 +1,19 @@
 <?php
 
+/*
+VcloudAPI class
+Usage:
+
+$myvcloud = new VcloudAPI("https://vcloud.url.example", "username", "password", 36.0);
+$currentSession = $myvcloud->getCurrentSession();
+
+
+TO-DO:
+- automate the process of collecting the apiversion, 
+by sending the request to the vcloud url with the extension "/api/versions",
+with the basic authentication
+(https://kb.vmware.com/s/article/56948)
+*/
 
 class VcloudAPI {
 
@@ -24,6 +38,15 @@ class VcloudAPI {
         var_dump($this->sessionToken);
         $this->getCurrentSession();
 
+    }
+
+    private function validateURL($url) {
+        #TODO validation and correction of url used in the constructor 
+    }
+
+    private function getAPIVersion() {
+        #TODO automatic validation of the api version
+        # 
     }
 
     private function getResponse($ch, String $urlExtension, $headers = null, $method = "get", $bodyOnly = false) {
@@ -58,7 +81,7 @@ class VcloudAPI {
 
         // Authentication        
         $headers = Array(
-            "Accept: application/*;version=".VCloudAPI::$apiVersion,
+            "Accept: application/*;version=".$this->apiVersion,
             "Authorization: Basic " . base64_encode("$this->user@$this->org:$this->passwd")
         );
 
@@ -80,6 +103,7 @@ class VcloudAPI {
         $response = $this->getResponse(null, "/cloudapi/1.0.0/sessions/current", null, "get", true);
         
         var_dump($response);
+        return $response;
     }
 
     public function getApps() {
