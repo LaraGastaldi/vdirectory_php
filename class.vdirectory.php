@@ -13,9 +13,21 @@ TO-DO:
 by sending the request to the vcloud url with the extension "/api/versions",
 with the basic authentication
 (https://kb.vmware.com/s/article/56948)
+
+- organize the extensions in an object
 */
 
-class VcloudAPI {
+$ext_array = array(
+    "GET" => array(
+        "session" => array()
+    ),
+    "POST" => array(),
+    "DELETE" => array(),
+    "PUT" => array()
+);
+
+class VcloudAPI
+{
 
     //private $curlOBJ;
     private $sessionToken;
@@ -25,7 +37,8 @@ class VcloudAPI {
     private $url;
     private $apiVersion;
 
-    function __construct($url, $user, $org, $passwd, $apiVersion) {
+    function __construct($url, $user, $org, $passwd, $apiVersion)
+    {
 
         $this->url = $url;
         $this->user = $user;
@@ -37,30 +50,33 @@ class VcloudAPI {
         $this->sessionToken = $this->getJWTToken();
         var_dump($this->sessionToken);
         $this->getCurrentSession();
-
     }
 
-    private function validateURL($url) {
+    private function validateURL($url)
+    {
         #TODO validation and correction of url used in the constructor 
     }
 
-    private function getAPIVersion() {
+    private function getAPIVersion()
+    {
         #TODO automatic validation of the api version
         # 
     }
 
-    private function getResponse($ch, String $urlExtension, $headers = null, $method = "get", $bodyOnly = false) {
-        
+    private function getResponse($ch, String $urlExtension, $headers = null, $method = "get", $bodyOnly = false)
+    {
+
         if (!$ch) $ch = curl_init();
-        
+
         if ($urlExtension[0] != "/") $urlExtension = "/" . $urlExtension;
-        
+
         if (!$headers) {
-            $headers = Array("Accept: application/*;version=".$this->apiVersion, 
-                             "Authorization: ".$this->sessionToken
-                            );
+            $headers = array(
+                "Accept: application/*;version=" . $this->apiVersion,
+                "Authorization: " . $this->sessionToken
+            );
         }
-        curl_setopt($ch, CURLOPT_URL, $this->url.$urlExtension);
+        curl_setopt($ch, CURLOPT_URL, $this->url . "/cloudapi/1.0.0" . $urlExtension);
         if (!$bodyOnly) {
             curl_setopt($ch, CURLOPT_HEADER, 1);
         }
@@ -77,44 +93,40 @@ class VcloudAPI {
         return $response;
     }
 
-    private function getJWTToken() {
+    private function getJWTToken(): string
+    {
 
         // Authentication        
-        $headers = Array(
-            "Accept: application/*;version=".$this->apiVersion,
+        $headers = array(
+            "Accept: application/*;version=" . $this->apiVersion,
             "Authorization: Basic " . base64_encode("$this->user@$this->org:$this->passwd")
         );
 
-        $response = $this->getResponse(null, "/cloudapi/1.0.0/sessions", $headers, "post");
-        
+        $response = $this->getResponse(null, "/sessions", $headers, "post");
+
         if (!$response) {
-            echo json_encode(Array("Error" => "Failed to send authentication request"));
+            echo json_encode(array("Error" => "Failed to send authentication request"));
         }
 
-        preg_match("/(?<=ACCESS\-TOKEN\:\s).*?(?=\s)/", $response , $m);
+        preg_match("/(?<=ACCESS-TOKEN:\s).*?(?=\s)/", $response, $m);
         $token = $m[0];
-        preg_match("/(?<=VCLOUD-TOKEN-TYPE\:\s).*?(?=\s)/", $response, $m);
-        $auth_token = $m[0] . " " . $token;
-        
-        return $auth_token;
+        preg_match("/(?<=VCLOUD-TOKEN-TYPE:\s).*?(?=\s)/", $response, $m);
+        return $m[0] . " " . $token;
     }
 
-    public function getCurrentSession() {
-        $response = $this->getResponse(null, "/cloudapi/1.0.0/sessions/current", null, "get", true);
-        
+    public function getCurrentSession()
+    {
+        $response = $this->getResponse(null, "/sessions/current", null, "get", true);
+
         var_dump($response);
         return $response;
     }
 
-    public function getApps() {
-        
+    public function getApps()
+    {
     }
 
-    function __destruct() {
-        
+    function __destruct()
+    {
     }
-
 }
-
-
-?>
